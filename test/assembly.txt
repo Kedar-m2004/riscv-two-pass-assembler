@@ -1,0 +1,25 @@
+;Test program for RISC-V Assembler
+
+start:
+ADDI R1, R0, 10
+ADDI R2, R0, 20
+
+ADD R3, R1, R2
+SUB R4, R3, R1
+
+SW R3, 0(R5)
+LW R6, 0(R5)
+
+BEQ R1, R2, skip
+ADDI R7, R0, 5
+
+skip:
+BNE R1, R2, loop
+ADDI R8, R0, 7
+
+loop:
+ADD R9, R1, R1
+
+JAL R10, start
+
+HLT
