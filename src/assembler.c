@@ -9,6 +9,7 @@
 
 #define MAX_LINES 200
 
+
 int is_blank(char* str){
     
     while(*str){
