@@ -22,6 +22,7 @@ typedef struct {
     char value[50];
 } Token;
 
+void add_token(Token tokens[], int* count, TokenType type, const char* value);
 int lexer(char* line, Token tokens[]);
 
 #endif

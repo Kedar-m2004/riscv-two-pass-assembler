@@ -21,8 +21,14 @@ const EncodeInstr encode_table[] = {
 };
 
 #define ENC_COUNT (sizeof(encode_table) / sizeof(encode_table[0]))
+#define HLT_INSTR 0xFFFFFFFF
 
 int reg_number(char *reg){
+
+    if(reg[0] != 'R' || !isdigit(reg[1])){
+        printf("Invalid register: %s\n", reg);
+        exit(1);
+    }
     int r = atoi(reg + 1);
 
     if(r<0 || r>31){
@@ -131,7 +137,8 @@ unsigned int encode_I(int rd, int rs1, int imm, int funct3, int opcode){
 
 unsigned int encode(Token tokens[], int count, int pc){
 
-    for(int i = 0; i<ENC_COUNT; i++){
+    for(int i = 0; i<ENC_COUNT; i++){           
+        // this linear search can be optimized using hashmaps, for O(1) lookup
          
         if( strcmp(tokens[0].value, encode_table[i].name) == 0 ){
 
@@ -139,7 +146,7 @@ unsigned int encode(Token tokens[], int count, int pc){
 
                 // Since we considered 'HLT' to be R-Type instruction.
                 if( strcmp(encode_table[i].name, "HLT") == 0 ){
-                    return 0xFFFFFFFF;       // special instruction value of halt
+                    return HLT_INSTR;       // special instruction value of halt
                 }
 
                 int rd = reg_number(tokens[1].value);
@@ -202,7 +209,9 @@ unsigned int encode(Token tokens[], int count, int pc){
                     return 0;
                 }
 
-                int offset = label_address - pc;
+                int offset = label_address - (pc + 4);  
+                //RISC-V calculates branch relative to next instruction, not current.
+                
                 if( offset%2 != 0 ){
                     printf("Error: Branch target misaligned!\n");
                     return 0;
@@ -231,7 +240,8 @@ unsigned int encode(Token tokens[], int count, int pc){
                     return 0;
                 }
 
-                int offset = label_address - pc;
+                int offset = label_address - (pc + 4);
+                //RISC-V calculates branch relative to next instruction, not current.
 
                 if(offset % 2 != 0){
                     printf("Branch target misaligned!");

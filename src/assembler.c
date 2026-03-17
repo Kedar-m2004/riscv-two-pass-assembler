@@ -38,7 +38,7 @@ int main(){
     int line_num = 1;
     int pc = 0;
 
-    Token tokens[100];
+    Token tokens[MAX_TOKENS];
     int tok_count;
 
     fp = fopen("test/assembly.txt", "r");
@@ -70,7 +70,7 @@ int main(){
         printf("\n\n----------------- PASS - 01 -----------------");
         while (fgets(line, sizeof(line), fp) != NULL){
             
-        // Removing comments:
+         // Removing comments:
             
             line[strcspn(line, ";")] = '\0';
             line[strcspn(line, "\n")] = '\0';
@@ -78,10 +78,11 @@ int main(){
             trim(line);
 
             if(is_blank(line)){
+                line_num++;
                 continue;
             }
 
-        // Detecting Labels:
+         // Detecting Labels:
             
             add_symbol(line, pc);
             if(is_blank(line)){
@@ -91,14 +92,27 @@ int main(){
             
             printf("\n%d. %-14s", line_num, line);
 
-        // Tokenization:
+         // Tokenization:
             tok_count = lexer(line, tokens);
+
+            // Check if lexer fails: 
+            if(tok_count == 0){
+                printf("Warning: Empty or invalid line at %d\n", line_num);
+            }
+
             printf("   (Number of tokens: %d)", tok_count);
             
-        // Calling Parser and building an intermediate program listing.
-        // (Parser basically validates the syntax of the program)
+         // Calling Parser and building an intermediate program listing.
+         // (Parser basically validates the syntax of the program)
             if(parser(tokens, tok_count, line_num)){
                 
+                if(line_count >= MAX_LINES){
+                    printf("Error: Too many lines in input.\n");
+                    printf("Kindly rewrite your code in a fewer lines.\n");
+                    printf("Your code exceeds the number of permitted lines.\n");
+                    exit(1);
+                }
+
                 strcpy(intermediate[line_count].instruction, line);
                 intermediate[line_count++].address = pc;
                 pc += 4;
@@ -147,27 +161,27 @@ int main(){
         for(int i = 0; i<line_count; i++){
             
             tok_count = lexer(intermediate[i].instruction, tokens); 
+
+            // Check after lexer to check if lexer fails:
+            if(tok_count == 0){
+                printf("Warning: Empty or invalid line at %d\n", line_num);
+            }
             
-            printf("\n 0x%04x \t %-15s", 
+            printf("\n 0x%04X \t %-15s", 
                 intermediate[i].address, 
                 intermediate[i].instruction
             );
 
-            if(parser(tokens, tok_count, i+1)){
-                // here (i+1) is sent, because, line_num = i+1
+            // MACHINE CODE GENERATION
+            unsigned int machine_code = encode(tokens, tok_count, intermediate[i].address);
 
-                // MACHINE CODE GENERATION
-                unsigned int machine_code = encode(tokens, tok_count, intermediate[i].address);
-
-                // WRITTING MACINE CODE IN A FILE:
-                printf(" | Machine Code: 0x%08X", machine_code);
-                fwrite(&machine_code, sizeof(machine_code), 1, bin_out);        // To be later used by CPU simulator
-                
-                // CLEANER/READABLE HEX OUTPUT:
-                fprintf(hex_out, "%04X : %08X\n", intermediate[i].address,machine_code);        // Human readable hex file
-                
-            }
-            
+            // WRITTING MACINE CODE IN A FILE:
+            printf(" | Machine Code: 0x%08X", machine_code);
+            fwrite(&machine_code, sizeof(machine_code), 1, bin_out);        // To be later used by CPU simulator
+               
+            // CLEANER/READABLE HEX OUTPUT:
+            fprintf(hex_out, "%04X : %08X\n", intermediate[i].address,machine_code);        // Human readable hex file
+        
         }
     }
 

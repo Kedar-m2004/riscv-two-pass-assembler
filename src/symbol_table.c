@@ -38,6 +38,12 @@ int symbol_count = 0;
 // Add Symbol (In symbol table)
 void add_symbol(char *line, int pc){
 
+    // Check for overflow:
+    if(symbol_count >= MAX_SYMBOLS){
+        printf("Error: Symbol table overflow.\nReduce the number of symbols used.\n");
+        exit(1);
+    }
+
     char *colon = strchr(line, ':');
 
     if(colon == NULL){
@@ -46,6 +52,11 @@ void add_symbol(char *line, int pc){
     *colon = '\0';           // split label and instruction
 
     trim(line);
+
+    if(find_symbol(line) != -1){
+        printf("Error: Duplicate label: %s\n", line);
+        exit(1);
+    }
 
     strcpy(symbol_table[symbol_count].label, line);
     symbol_table[symbol_count].address = pc;

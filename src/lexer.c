@@ -3,6 +3,18 @@
 #include<ctype.h>
 #include"lexer.h"
 
+void add_token(Token tokens[], int* count, TokenType type, const char* value){
+
+    if(*count >= MAX_TOKENS){
+        printf("Error: Too many tokens.\n");
+        exit(1);
+    }
+
+    tokens[*count].type = type;
+    strcpy(tokens[*count].value, value);
+    (*count)++;
+}
+
 // Lexer tokenizes the input string:
 int lexer(char* line, Token tokens[]){
 
@@ -22,8 +34,7 @@ int lexer(char* line, Token tokens[]){
         // Handling comma:
         if(*ptr == ','){
 
-            tokens[count].type = COMMA;
-            strcpy(tokens[count++].value, ",");
+            add_token(tokens, &count, COMMA, ",");
 
             ptr++;
             continue;
@@ -31,16 +42,18 @@ int lexer(char* line, Token tokens[]){
 
         // Handling Left Parantheses:
         if(*ptr == '('){
-            tokens[count].type = LPAREN;
-            strcpy(tokens[count++].value, ptr);
+
+            char temp[2] = {*ptr, '\0'};
+            add_token(tokens, &count, LPAREN, temp);
             ptr++;
             continue;
         }
 
         // Handling Right Parantheses:
         if(*ptr == ')'){
-            tokens[count].type = RPAREN;
-            strcpy( tokens[count++].value, ptr);
+            
+            char temp[2] = {*ptr, '\0'};
+            add_token(tokens, &count, LPAREN, temp);
             ptr++;
             continue;
         }
@@ -60,22 +73,30 @@ int lexer(char* line, Token tokens[]){
             continue;
         }
 
+        // Preventing Case Sensitivity:
+        for(int j = 0; buffer[j]; j++){
+            buffer[j] = toupper(buffer[j]);     // toupper function converts lower case to upper case. 
+        }
+
 
         // Classifying words as tokens:
-        if( (buffer[0] == 'R')&&isdigit(buffer[1]) ){
-            tokens[count].type = REGISTER;
+
+        TokenType type; 
+
+        if( (buffer[0] == 'R') && isdigit(buffer[1]) ){
+            type = REGISTER;
         }
         else if( isdigit(buffer[0]) || ((buffer[0] == '-')&&isdigit(buffer[1]) ) ){
-            tokens[count].type = IMMEDIATE;
+            type = IMMEDIATE;
         }
         else if( isalpha(buffer[0]) ){
-            tokens[count].type = IDENTIFIER;
+            type = IDENTIFIER;
         }
         else{
-            tokens[count].type = UNKNOWN;
+            type = UNKNOWN;
         }
 
-        strcpy(tokens[count++].value, buffer);
+        add_token(tokens, &count, type, buffer);
     }
 
     return count;
