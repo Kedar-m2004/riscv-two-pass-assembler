@@ -6,19 +6,29 @@
 #include"symbol_table.h"
 
 const EncodeInstr encode_table[] = {
+
+  // R-Type
     {"ADD", R_TYPE, 0x33, 0x0, 0x00},
     {"SUB", R_TYPE, 0x33, 0x0, 0x20},
+
+    {"HLT", R_TYPE, 0x00, 0x0, 0x00},
+
+  // I-Type
     {"ADDI", I_TYPE, 0x13, 0x0, 0x00},
+    {"JALR", I_TYPE, 0x67, 0x0, 0x00},
 
     {"LW", I_TYPE, 0x03, 0x2, 0x00},
+
+  // S-Type
     {"SW", S_TYPE, 0x23, 0x2, 0x00},
 
+  // B-Type
     {"BEQ", B_TYPE, 0x63, 0x0, 0x00},
     {"BNE", B_TYPE, 0x63, 0x1, 0x00},
 
-    {"JAL", J_TYPE, 0x6F, 0x0, 0x00},
+  // J-Type
+    {"JAL", J_TYPE, 0x6F, 0x0, 0x00}
 
-    {"HLT", R_TYPE, 0x00, 0x0, 0x00}
 };
 
 #define ENC_COUNT (sizeof(encode_table) / sizeof(encode_table[0]))
@@ -164,39 +174,40 @@ unsigned int encode(Token tokens[], int count, int pc){
             else if (encode_table[i].format == I_TYPE){     // for I-Type instructions
 
                 int rd = reg_number(tokens[1].value);
+                int rs1, imm;
 
-                if( strcmp(encode_table[i].name, "LW") == 0 ){
+                if( (strcmp(encode_table[i].name, "LW") == 0) ||
+                    (strcmp(encode_table[i].name, "JALR") == 0) 
+                ){
+                    // Since, LW and JALR have same format
+                    // format: rd, imm(rs1)
 
-                    int imm = atoi(tokens[3].value);
-                    int rs1 = reg_number(tokens[5].value);
+                    imm = atoi(tokens[3].value);
+                    rs1 = reg_number(tokens[5].value);
                     
                     if(imm<-2048 || imm>2047){
-                        printf("Error: Immediate out of range for LW\n");
+                        printf("Error: Immediate out of range for %s\n", encode_table[i].name);
                         exit(1);
                     }
 
-                    return encode_I(
-                        rd, rs1, imm,
-                        encode_table[i].funct3,
-                        encode_table[i].opcode
-                    );
                 }
                 else{
+                    // format: rd, rs1, imm
                     
-                    int rs1 = reg_number(tokens[3].value);
-                    int imm = atoi(tokens[5].value);
+                    rs1 = reg_number(tokens[3].value);
+                    imm = atoi(tokens[5].value);
 
                     if(imm<-2048 || imm>2047){
                         printf("Error: Immediate out of range for ADDI\n");
                         exit(1);
                     }
 
-                    return encode_I(
-                        rd, rs1, imm,
-                        encode_table[i].funct3,
-                        encode_table[i].opcode
-                    );
                 }
+                return encode_I(
+                    rd, rs1, imm,
+                    encode_table[i].funct3,
+                    encode_table[i].opcode
+                );
             }
             else if(encode_table[i].format == B_TYPE){      // for B-Type instructions
 
@@ -210,8 +221,8 @@ unsigned int encode(Token tokens[], int count, int pc){
                     exit(1);
                 }
 
-                int offset = label_address - (pc + 4);  
-                //RISC-V calculates branch relative to next instruction, not current.
+                int offset = label_address - pc;
+                //RISC-V calculates branch relative to the instruction.
                 
                 if( offset%2 != 0 ){
                     printf("Error: Branch target misaligned!\n");
@@ -241,8 +252,8 @@ unsigned int encode(Token tokens[], int count, int pc){
                     return 0;
                 }
 
-                int offset = label_address - (pc + 4);
-                //RISC-V calculates branch relative to next instruction, not current.
+                int offset = label_address - pc;
+                //RISC-V calculates branch relative to the instruction.
 
                 if(offset % 2 != 0){
                     printf("Branch target misaligned!");

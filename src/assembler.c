@@ -32,7 +32,7 @@ Intermediate_Lines intermediate[MAX_LINES];
 int line_count = 0;                             // For counting intermediate lines
 
 
-int main(){
+int assemble(const char* input_file){
     FILE *fp;
     char line[MAX];
     int line_num = 1;
@@ -41,7 +41,7 @@ int main(){
     Token tokens[MAX_TOKENS];
     int tok_count;
 
-    fp = fopen("test/assembly.txt", "r");
+    fp = fopen(input_file, "r");
 
     // Error Management:
     {

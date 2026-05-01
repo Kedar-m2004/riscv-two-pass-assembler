@@ -7,19 +7,29 @@
 
 // Instruction Table (Array Declaration):
 Instruction instruction_set[] = {
-    {"ADDI", 5, {REGISTER, COMMA, REGISTER, COMMA, IMMEDIATE}},
+
+    // R_TYPE
     {"ADD", 5, {REGISTER, COMMA, REGISTER, COMMA, REGISTER}},
     {"SUB", 5, {REGISTER, COMMA, REGISTER, COMMA, REGISTER}},
 
+    // I_TYPE
+    {"ADDI", 5, {REGISTER, COMMA, REGISTER, COMMA, IMMEDIATE}},
+    {"JALR", 6, {REGISTER, COMMA, IMMEDIATE, LPAREN, REGISTER, RPAREN}},
+
+    {"LW", 6, {REGISTER, COMMA, IMMEDIATE, LPAREN, REGISTER, RPAREN}},      // LPAREN is left paranthesis
+
+    // S_TYPE
+    {"SW", 6, {REGISTER, COMMA, IMMEDIATE, LPAREN, REGISTER, RPAREN}},      // RPAREN is right paranthesis
+
+    // B_TYPE
     {"BEQ", 5, {REGISTER, COMMA, REGISTER, COMMA, IDENTIFIER}},
     {"BNE", 5, {REGISTER, COMMA, REGISTER, COMMA, IDENTIFIER}},
 
+    // J_TYPE
     {"JAL", 3, {REGISTER, COMMA, IDENTIFIER}},
 
-    {"LW", 6, {REGISTER, COMMA, IMMEDIATE, LPAREN, REGISTER, RPAREN}},      // LPAREN is left paranthesis
-    {"SW", 6, {REGISTER, COMMA, IMMEDIATE, LPAREN, REGISTER, RPAREN}},      // RPAREN is right paranthesis
-
-    {"HLT", 0, {}}
+    // HALT INSTRUCTION:
+    {"HLT", 0, {}}          // Also counted in R_TYPE, but a custom case
 };
 
 // Calculation for number of instructions in the table: 
